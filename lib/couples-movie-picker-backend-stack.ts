@@ -3,15 +3,29 @@ import * as dynamodb from "@aws-cdk/aws-dynamodb";
 import * as lambda from "@aws-cdk/aws-lambda";
 import * as apigw from "@aws-cdk/aws-apigateway";
 import cognito = require("@aws-cdk/aws-cognito");
+import s3 = require("@aws-cdk/aws-s3");
 
 export class CouplesMoviePickerBackendStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    const usersTable = new dynamodb.Table(this, "users", {
+      partitionKey: { name: "username", type: dynamodb.AttributeType.STRING },
+    });
+
     const autoConfirmUser = new lambda.Function(this, "AutoConfirmUser", {
       runtime: lambda.Runtime.NODEJS_10_X,
       code: new lambda.AssetCode("src"),
       handler: "autoConfirm.handler",
+    });
+
+    const addUser = new lambda.Function(this, "AddUserHandler", {
+      runtime: lambda.Runtime.NODEJS_10_X,
+      code: new lambda.AssetCode("src"),
+      handler: "addUser.handler",
+      environment: {
+        USERS_TABLE_NAME: usersTable.tableName,
+      },
     });
 
     const userPool = new cognito.UserPool(
@@ -30,6 +44,7 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
         },
         lambdaTriggers: {
           preSignUp: autoConfirmUser,
+          postConfirmation: addUser,
         },
       }
     );
@@ -44,21 +59,8 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
       identityPoolName: "couples-movie-picker-identity-pool",
     });
 
-    const usersTable = new dynamodb.Table(this, "users", {
-      partitionKey: { name: "username", type: dynamodb.AttributeType.STRING },
-    });
-
     const movies = new dynamodb.Table(this, "movies", {
       partitionKey: { name: "title", type: dynamodb.AttributeType.STRING },
-    });
-
-    const addUser = new lambda.Function(this, "AddUserHandler", {
-      runtime: lambda.Runtime.NODEJS_10_X,
-      code: new lambda.AssetCode("src"),
-      handler: "addUser.handler",
-      environment: {
-        USERS_TABLE_NAME: usersTable.tableName,
-      },
     });
 
     const likeMovie = new lambda.Function(this, "LikeMovieHandler", {
@@ -74,6 +76,15 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_10_X,
       code: new lambda.AssetCode("src"),
       handler: "getUsers.handler",
+      environment: {
+        USERS_TABLE_NAME: usersTable.tableName,
+      },
+    });
+
+    const profilePictureUploadedTrigger = new lambda.Function(this, "ProfilePictureUploadedTrigger", {
+      runtime: lambda.Runtime.NODEJS_10_X,
+      code: new lambda.AssetCode("src"),
+      handler: "ProfilePictureUploadedTrigger.handler",
       environment: {
         USERS_TABLE_NAME: usersTable.tableName,
       },
@@ -100,6 +111,9 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
     const likeMovieIntegration = new apigw.LambdaIntegration(likeMovie);
     moviesResource.addMethod("POST", likeMovieIntegration);
     usersTable.grantReadWriteData(likeMovie as any);
+
+
+    const profilePicturesBucket = new s3.Bucket(this, "profilePicturesBucket");
   }
 }
 
