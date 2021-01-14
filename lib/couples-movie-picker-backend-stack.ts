@@ -4,8 +4,6 @@ import * as lambda from "@aws-cdk/aws-lambda";
 import * as apigw from "@aws-cdk/aws-apigateway";
 import cognito = require("@aws-cdk/aws-cognito");
 import s3 = require("@aws-cdk/aws-s3");
-import { CfnIdentityPoolRoleAttachment } from "@aws-cdk/aws-cognito";
-import { Construct } from "@aws-cdk/core";
 
 export class CouplesMoviePickerBackendStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -109,7 +107,8 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
           USERS_TABLE_NAME: usersTable.tableName,
         },
       }
-    );
+      );
+      usersTable.grantReadWriteData(profilePictureUploadedTrigger as any);
 
     const removeProfilePicture = new lambda.Function(
       this,
@@ -123,17 +122,43 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
         },
       }
     );
-    usersTable.grantReadWriteData(profilePictureUploadedTrigger as any);
+
+    const sendPairRequests = new lambda.Function(this, "SendPairRequest", {
+      runtime: lambda.Runtime.NODEJS_10_X,
+      code: new lambda.AssetCode("src"),
+      handler: "sendPairRequest.handler",
+      environment: {
+        USERS_TABLE_NAME: usersTable.tableName,
+      },
+    });
+    
 
     const api = new apigw.RestApi(this, "couples-movie-picker-api", {
       restApiName: "couples-movie-picker-api",
     });
 
+    const authorizer = new apigw.CfnAuthorizer(
+      this,
+      "couples-movie-picker-api-authorizer",
+      {
+        name: "couples-movie-picker-api-authorizer",
+        restApiId: api.restApiId,
+        type: apigw.AuthorizationType.COGNITO,
+        identitySource: "method.request.header.Authorization",
+        providerArns: [userPool.userPoolArn]
+      }
+    );
+
+
+
     const userResource = api.root.addResource("user");
     addCorsOptions(userResource);
 
     const getUsersIntegration = new apigw.LambdaIntegration(getUsers);
-    userResource.addMethod("GET", getUsersIntegration);
+    userResource.addMethod("GET", getUsersIntegration, {
+      authorizationType: apigw.AuthorizationType.COGNITO,
+      authorizer: { authorizerId: authorizer.ref },
+    });
     usersTable.grantReadWriteData(getUsers as any);
 
     const pictureResource = userResource.addResource("picture");
@@ -156,6 +181,17 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
     moviesResource.addMethod("POST", likeMovieIntegration);
     usersTable.grantReadWriteData(likeMovie as any);
 
+    const requestPairingResource = api.root.addResource("requestPairing");
+    addCorsOptions(requestPairingResource);
+    const requestPairingIntegration = new apigw.LambdaIntegration(sendPairRequests);
+
+    requestPairingResource.addMethod("GET", requestPairingIntegration, {
+      authorizationType: apigw.AuthorizationType.COGNITO,
+      authorizer: { authorizerId: authorizer.ref },
+    });
+    usersTable.grantReadWriteData(sendPairRequests as any);
+
+
     // need to add bucket policy to s3 bucket
     //   {
     //     "Version": "2012-10-17",
@@ -176,6 +212,8 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
     //         }
     //     ]
     // }
+
+      
     const profilePicturesBucket = new s3.Bucket(this, "profilePicturesBucket", {
       cors: [
         {
