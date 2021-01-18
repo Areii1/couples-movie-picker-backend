@@ -131,7 +131,24 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
         USERS_TABLE_NAME: usersTable.tableName,
       },
     });
-    
+
+    const acceptIncomingRequest = new lambda.Function(this, "AcceptIncomingRequest", {
+      runtime: lambda.Runtime.NODEJS_10_X,
+      code: new lambda.AssetCode("src"),
+      handler: "acceptIncomingRequest.handler",
+      environment: {
+        USERS_TABLE_NAME: usersTable.tableName,
+      },
+    });
+
+    const cancelPairingRequest = new lambda.Function(this, "CancelPairingRequest", {
+      runtime: lambda.Runtime.NODEJS_10_X,
+      code: new lambda.AssetCode("src"),
+      handler: "cancelPairingRequest.handler",
+      environment: {
+        USERS_TABLE_NAME: usersTable.tableName,
+      },
+    });
 
     const api = new apigw.RestApi(this, "couples-movie-picker-api", {
       restApiName: "couples-movie-picker-api",
@@ -191,6 +208,27 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
     });
     usersTable.grantReadWriteData(sendPairRequests as any);
 
+    const cancelPairingResource = api.root.addResource("cancelPairing");
+    addCorsOptions(cancelPairingResource);
+    const cancelPairingIntegration = new apigw.LambdaIntegration(cancelPairingRequest);
+
+    cancelPairingResource.addMethod("GET", cancelPairingIntegration, {
+      authorizationType: apigw.AuthorizationType.COGNITO,
+      authorizer: { authorizerId: authorizer.ref },
+    });
+    usersTable.grantReadWriteData(cancelPairingRequest as any);
+
+
+    const acceptIncomingResource = api.root.addResource("acceptIncomingRequest");
+    addCorsOptions(acceptIncomingResource);
+    const acceptIncomingRequestIntegration = new apigw.LambdaIntegration(acceptIncomingRequest);
+
+    acceptIncomingResource.addMethod("GET", acceptIncomingRequestIntegration, {
+      authorizationType: apigw.AuthorizationType.COGNITO,
+      authorizer: { authorizerId: authorizer.ref },
+    });
+    usersTable.grantReadWriteData(acceptIncomingRequest as any);
+    
 
     // need to add bucket policy to s3 bucket
     //   {
