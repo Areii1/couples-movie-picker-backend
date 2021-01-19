@@ -166,8 +166,6 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
       }
     );
 
-
-
     const userResource = api.root.addResource("user");
     addCorsOptions(userResource);
 
@@ -228,7 +226,64 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
       authorizer: { authorizerId: authorizer.ref },
     });
     usersTable.grantReadWriteData(acceptIncomingRequest as any);
+
+    const rejectIncomingRequest = new lambda.Function(this, "RejectIncomingRequest", {
+      runtime: lambda.Runtime.NODEJS_10_X,
+      code: new lambda.AssetCode("src"),
+      handler: "rejectIncomingRequest.handler",
+      environment: {
+        USERS_TABLE_NAME: usersTable.tableName,
+      },
+    });
+
+    const rejectIncomingResource = api.root.addResource("rejectIncomingRequest");
+    addCorsOptions(rejectIncomingResource);
+    const rejectIncomingRequestIntegration = new apigw.LambdaIntegration(rejectIncomingRequest);
+
+    rejectIncomingResource.addMethod("GET", rejectIncomingRequestIntegration, {
+      authorizationType: apigw.AuthorizationType.COGNITO,
+      authorizer: { authorizerId: authorizer.ref },
+    });
+    usersTable.grantReadWriteData(rejectIncomingRequest as any);
     
+
+    const breakUpPartnership = new lambda.Function(this, "BreakUpPartnership", {
+      runtime: lambda.Runtime.NODEJS_10_X,
+      code: new lambda.AssetCode("src"),
+      handler: "breakUpPartnership.handler",
+      environment: {
+        USERS_TABLE_NAME: usersTable.tableName,
+      },
+    });
+
+    const breakUpPartnershipResource = api.root.addResource("breakUpPartnership");
+    addCorsOptions(breakUpPartnershipResource);
+    const breakUpPartnershipIntegration = new apigw.LambdaIntegration(breakUpPartnership);
+
+    breakUpPartnershipResource.addMethod("GET", breakUpPartnershipIntegration, {
+      authorizationType: apigw.AuthorizationType.COGNITO,
+      authorizer: { authorizerId: authorizer.ref },
+    });
+    usersTable.grantReadWriteData(breakUpPartnership as any);
+
+    const randomizeProfilePicture = new lambda.Function(this, "RandomizeProfilePicture", {
+      runtime: lambda.Runtime.NODEJS_10_X,
+      code: new lambda.AssetCode("src"),
+      handler: "randomizeProfilePicture.handler",
+      environment: {
+        USERS_TABLE_NAME: usersTable.tableName,
+      },
+    });
+
+    const randomizeProfilePictureResource = api.root.addResource("randomizeProfilePicture");
+    addCorsOptions(randomizeProfilePictureResource);
+    const randomizeProfilePictureIntegration = new apigw.LambdaIntegration(randomizeProfilePicture);
+
+    randomizeProfilePictureResource.addMethod("GET", randomizeProfilePictureIntegration, {
+      authorizationType: apigw.AuthorizationType.COGNITO,
+      authorizer: { authorizerId: authorizer.ref },
+    });
+    usersTable.grantReadWriteData(randomizeProfilePicture as any);
 
     // need to add bucket policy to s3 bucket
     //   {
