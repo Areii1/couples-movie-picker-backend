@@ -1,7 +1,7 @@
 exports.validateUserInput = (
-  event: any,
-  requiredAttributes: any,
-  optionalAttributes: any
+  event,
+  requiredAttributes,
+  optionalAttributes
 ) => {
   const parsedBody = JSON.parse(event.body);
   console.log(parsedBody, "parsedBody");
@@ -10,7 +10,7 @@ exports.validateUserInput = (
     Object.keys(parsedBody).length;
   if (!tooManyAttributesFound) {
     const requiredAttributeNotFound = requiredAttributes.some(
-      (requiredAttribute: any) => {
+      (requiredAttribute) => {
         const attributeFound = Object.keys(parsedBody).some(
           (givenAttribute) => givenAttribute === requiredAttribute.name
         );
@@ -38,9 +38,9 @@ exports.validateUserInput = (
   }
 };
 
-exports.validateTriggerInput = (event: any, requiredAttributes: any) => {
+exports.validateTriggerInput = (event, requiredAttributes) => {
   const requiredAttributeNotFound = requiredAttributes.some(
-    (requiredAttribute: any) => {
+    (requiredAttribute) => {
       const attributeFound = Object.keys(event).some(
         (givenAttribute) => givenAttribute === requiredAttribute.name
       );
@@ -57,9 +57,9 @@ exports.validateTriggerInput = (event: any, requiredAttributes: any) => {
 };
 
 exports.getErrorMessage = (
-  event: any,
-  requiredAttributes: any,
-  optionalAttributes: any
+  event,
+  requiredAttributes,
+  optionalAttributes
 ) => {
   const combinedAttributes = [...requiredAttributes, ...optionalAttributes];
   const combinedAttributesKeys = combinedAttributes.map(
@@ -71,7 +71,7 @@ exports.getErrorMessage = (
     Object.keys(parsedBody).length;
   if (!tooManyAttributesFound) {
     const requiredAttributeNotFound = requiredAttributes.find(
-      (requiredAttribute: any) => {
+      (requiredAttribute) => {
         const attributeFound = Object.keys(parsedBody).some(
           (givenAttribute) => givenAttribute === requiredAttribute.name
         );

@@ -1,4 +1,4 @@
-exports.handler = async function (event: any) {
+exports.handler = async function (event) {
   // Confirm the user
   event.response.autoConfirmUser = true;
 

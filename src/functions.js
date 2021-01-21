@@ -1,6 +1,4 @@
-export {};
-
-const getFetchUserParams = (tableName: string, givenUsername: string) => {
+const getFetchUserParams = (tableName, givenUsername) => {
   return {
     TableName: tableName,
     Key: {
@@ -11,7 +9,7 @@ const getFetchUserParams = (tableName: string, givenUsername: string) => {
   };
 };
 
-const validateQueryStringUsername = (event: any) => {
+const validateQueryStringUsername = (event) => {
   if (event.queryStringParameters) {
     if (event.queryStringParameters.username) {
       return true;
@@ -24,8 +22,8 @@ const validateQueryStringUsername = (event: any) => {
 };
 
 const getRemoveOutgoingRequestsAttributeParams = (
-  tableName: string,
-  person: string
+  tableName,
+  person
 ) => ({
   Key: {
     username: {
@@ -41,8 +39,8 @@ const getRemoveOutgoingRequestsAttributeParams = (
 });
 
 const getRemoveIncomingRequestsAttributeParams = (
-  tableName: string,
-  person: string
+  tableName,
+  person
 ) => ({
   Key: {
     username: {
@@ -58,9 +56,9 @@ const getRemoveIncomingRequestsAttributeParams = (
 });
 
 const getAddPartnerAttributeParams = (
-  tableName: string,
-  person: string,
-  partner: string
+  tableName,
+  person,
+  partner
 ) => ({
   Key: {
     username: {
@@ -80,9 +78,9 @@ const getAddPartnerAttributeParams = (
 });
 
 const getAddOutgoingRequestsParams = (
-  tableName: string,
-  person: string,
-  targetPerson: string
+  tableName,
+  person,
+  targetPerson
 ) => ({
   Key: {
     username: {
@@ -102,9 +100,9 @@ const getAddOutgoingRequestsParams = (
 });
 
 const getAddIncomingRequestsAttributeParams = (
-  tableName: string,
-  requesterPerson: string,
-  requestedPerson: string
+  tableName,
+  requesterPerson,
+  requestedPerson
 ) => ({
   Key: {
     username: {
@@ -125,9 +123,9 @@ const getAddIncomingRequestsAttributeParams = (
 });
 
 const getAddToIncomingRequestsParams = (
-  tableName: string,
-  requesterPerson: string,
-  requestedPerson: string
+  tableName,
+  requesterPerson,
+  requestedPerson
 ) => ({
   Key: {
     username: {
@@ -145,8 +143,8 @@ const getAddToIncomingRequestsParams = (
 });
 
 const getRemoveProfilePictureAttributeParams = (
-  tableName: string,
-  person: string
+  tableName,
+  person
 ) => ({
   Key: {
     username: {
@@ -162,9 +160,9 @@ const getRemoveProfilePictureAttributeParams = (
 });
 
 const getSubtractItemFromIncomingRequestsListParams = (
-  tableName: string,
-  rejector: string,
-  rejectee: string
+  tableName,
+  rejector,
+  rejectee
 ) => ({
   Key: {
     username: {
@@ -182,9 +180,9 @@ const getSubtractItemFromIncomingRequestsListParams = (
 });
 
 const getSetProfilePictureAttributeParams = (
-  tableName: string,
-  person: string,
-  path: string
+  tableName,
+  person,
+  path
 ) => ({
   Key: {
     username: {
@@ -203,8 +201,8 @@ const getSetProfilePictureAttributeParams = (
 });
 
 const getRemovePartnerAttributeParams = (
-  tableName: string,
-  person: string
+  tableName,
+  person
 ) => ({
   Key: {
     username: {

@@ -2,22 +2,22 @@ const AWS = require("aws-sdk");
 const headers = require("./constants");
 const { getSetProfilePictureAttributeParams } = require("./functions");
 
-exports.handler = async function (event: any) {
-  const pictureIndex = Math.floor(Math.random() * 22) + 1;
+exports.handler = async function (event) {
+  const keySplitArr = event.Records[0].s3.object.key.split("/");
   const dynamodb = new AWS.DynamoDB();
   const setProfilePictureAttributeParams = getSetProfilePictureAttributeParams(
     process.env.USERS_TABLE_NAME,
     event.requestContext.authorizer.claims["cognito:username"],
-    `random/${pictureIndex}.jpg`
+    keySplitArr[1]
   );
   try {
-    const dbPutResponse = await dynamodb
+    const setProfilePictureAttributeResponse = await dynamodb
       .updateItem(setProfilePictureAttributeParams)
       .promise();
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(dbPutResponse),
+      body: JSON.stringify(setProfilePictureAttributeResponse),
     };
   } catch (databaseError) {
     return {

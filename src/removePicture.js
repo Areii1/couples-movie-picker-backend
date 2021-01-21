@@ -1,10 +1,8 @@
-export {};
-
 const AWS = require("aws-sdk");
 const headers = require("./constants");
 const { getRemoveProfilePictureAttributeParams } = require("./functions");
 
-const validateUserInput = (event: any) => {
+const validateUserInput = (event) => {
   if (event.queryStringParameters) {
     if (event.queryStringParameters.username) {
       return true;
@@ -16,12 +14,12 @@ const validateUserInput = (event: any) => {
   }
 };
 
-exports.handler = async function (event: any) {
+exports.handler = async function (event) {
   if (validateUserInput(event)) {
     const dynamodb = new AWS.DynamoDB();
     try {
       const removeProfilePictureAttributeParams = getRemoveProfilePictureAttributeParams(
-        process.env.USERS_TABLE_NAME as string,
+        process.env.USERS_TABLE_NAME,
         event.queryStringParameters.username
       );
       const dbPutResponse = await dynamodb

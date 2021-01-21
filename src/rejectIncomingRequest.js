@@ -9,7 +9,7 @@ const {
   getRemoveOutgoingRequestsAttributeParams,
 } = require("./functions");
 
-const fetchUser = async (tableName: string, givenUsername: string) => {
+const fetchUser = async (tableName, givenUsername) => {
   try {
     const dynamodb = new AWS.DynamoDB();
     const fetchUserParams = getFetchUserParams(tableName, givenUsername);
@@ -22,21 +22,21 @@ const fetchUser = async (tableName: string, givenUsername: string) => {
   }
 };
 
-exports.handler = async function (event: any) {
+exports.handler = async function (event) {
   if (validateQueryStringUsername(event)) {
     const dynamodb = new AWS.DynamoDB();
     try {
       const fetchRequestedUserResponse = await fetchUser(
-        process.env.USERS_TABLE_NAME as string,
+        process.env.USERS_TABLE_NAME,
         event.requestContext.authorizer.claims["cognito:username"]
       );
       const fetchRequesterResponse = await fetchUser(
-        process.env.USERS_TABLE_NAME as string,
+        process.env.USERS_TABLE_NAME,
         event.queryStringParameters.username
       );
       const incomingRequestExistsOnRequested =
         fetchRequestedUserResponse.Item.incomingRequests.SS.find(
-          (request: string) => request === event.queryStringParameters.username
+          (request) => request === event.queryStringParameters.username
         ) !== undefined;
       const outgoingRequestExistsOnRequester =
         fetchRequesterResponse.Item.outgoingRequests.S ===

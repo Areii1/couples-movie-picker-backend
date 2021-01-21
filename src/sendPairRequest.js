@@ -1,5 +1,3 @@
-export {};
-
 const AWS = require("aws-sdk");
 const headers = require("./constants");
 const {
@@ -10,7 +8,7 @@ const {
   getAddToIncomingRequestsParams,
 } = require("./functions");
 
-exports.handler = async function (event: any) {
+exports.handler = async function (event) {
   if (validateQueryStringUsername(event)) {
     const dynamodb = new AWS.DynamoDB();
     try {

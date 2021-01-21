@@ -6,7 +6,7 @@ const {
   getRemoveIncomingRequestsAttributeParams,
 } = require("./functions");
 
-const fetchUser = async (tableName: string, givenUsername: string) => {
+const fetchUser = async (tableName, givenUsername) => {
   try {
     const fetchUserParams = getFetchUserParams(tableName, givenUsername);
     const dynamodb = new AWS.DynamoDB();
@@ -19,7 +19,7 @@ const fetchUser = async (tableName: string, givenUsername: string) => {
   }
 };
 
-const validateUserInput = (event: any) => {
+const validateUserInput = (event) => {
   if (event.queryStringParameters) {
     if (event.queryStringParameters.username) {
       return true;
@@ -31,16 +31,16 @@ const validateUserInput = (event: any) => {
   }
 };
 
-exports.handler = async function (event: any) {
+exports.handler = async function (event) {
   if (validateUserInput(event)) {
     const dynamodb = new AWS.DynamoDB();
     try {
       const fetchRequesterUserResponse = await fetchUser(
-        process.env.USERS_TABLE_NAME as string,
+        process.env.USERS_TABLE_NAME,
         event.requestContext.authorizer.claims["cognito:username"]
       );
       const fetchTargetUserResponse = await fetchUser(
-        process.env.USERS_TABLE_NAME as string,
+        process.env.USERS_TABLE_NAME,
         event.queryStringParameters.username
       );
       const requesterAndTargetHavePartnerAttribute =

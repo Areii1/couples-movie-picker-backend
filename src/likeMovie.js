@@ -1,10 +1,8 @@
-export {};
-
 const AWS = require("aws-sdk");
 const headers = require("./constants");
 const { validateUserInput, getErrorMessage } = require("./utilityFunctions");
 
-const addLikedMovie = async (movieId: string, score: string) => {
+const addLikedMovie = async (movieId, score) => {
   const params = {
     TableName: process.env.USERS_TABLE_NAME,
     Key: {
@@ -44,7 +42,7 @@ const requiredAttributes = [
   { name: "score", type: "number" },
 ];
 
-exports.handler = async function (event: any) {
+exports.handler = async function (event) {
   if (validateUserInput(event, requiredAttributes, [])) {
     const parsedBody = JSON.parse(event.body);
     const addLikedMovieResponse = addLikedMovie(

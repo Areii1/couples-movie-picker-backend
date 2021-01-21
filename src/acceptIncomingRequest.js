@@ -1,5 +1,3 @@
-export {};
-
 const AWS = require("aws-sdk");
 const headers = require("./constants");
 const {
@@ -9,7 +7,7 @@ const {
   getFetchUserParams,
 } = require("./functions");
 
-const fetchUser = async (tableName: string, givenUsername: string) => {
+const fetchUser = async (tableName, givenUsername) => {
   try {
     const fetchUserParams = getFetchUserParams(tableName, givenUsername);
     const dynamodb = new AWS.DynamoDB();
@@ -22,7 +20,7 @@ const fetchUser = async (tableName: string, givenUsername: string) => {
   }
 };
 
-const validateUserInput = (event: any) => {
+const validateUserInput = (event) => {
   if (event.queryStringParameters) {
     if (event.queryStringParameters.username) {
       return true;
@@ -34,7 +32,7 @@ const validateUserInput = (event: any) => {
   }
 };
 
-const updatePerson = async (person: string, partner: string) => {
+const updatePerson = async (person, partner) => {
   const dynamodb = new AWS.DynamoDB();
   const removeOutgoingRequestsAttributeParams = getRemoveOutgoingRequestsAttributeParams(
     process.env.USERS_TABLE_NAME,
@@ -63,11 +61,11 @@ const updatePerson = async (person: string, partner: string) => {
   console.log(dbRequesterAddResponse, "dbRequesterAddResponse");
 };
 
-exports.handler = async function (event: any) {
+exports.handler = async function (event) {
   if (validateUserInput(event)) {
     try {
       const fetchRequestedUserResponse = await fetchUser(
-        process.env.USERS_TABLE_NAME as string,
+        process.env.USERS_TABLE_NAME,
         event.queryStringParameters.username
       );
       const outgoingMatchesRequester =

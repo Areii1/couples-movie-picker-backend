@@ -1,10 +1,8 @@
-export {};
-
 const AWS = require("aws-sdk");
 const headers = require("./constants");
 const { getFetchUserParams } = require("./functions");
 
-const getErrorMessage = (event: any) => {
+const getErrorMessage = (event) => {
   if (event.queryStringParameters) {
     if (event.queryStringParameters.username) {
       if (Object.keys(event.queryStringParameters).length === 1) {
@@ -20,7 +18,7 @@ const getErrorMessage = (event: any) => {
   }
 };
 
-const validateUserInput = (event: any) => {
+const validateUserInput = (event) => {
   if (event.queryStringParameters) {
     if (event.queryStringParameters.username) {
       return true;
@@ -32,7 +30,7 @@ const validateUserInput = (event: any) => {
   }
 };
 
-const fetchUser = async (tableName: string, givenUsername: string) => {
+const fetchUser = async (tableName, givenUsername) => {
   const fetchUserParams = getFetchUserParams(tableName, givenUsername);
   try {
     const dynamodb = new AWS.DynamoDB();
@@ -64,10 +62,10 @@ const fetchUser = async (tableName: string, givenUsername: string) => {
   }
 };
 
-exports.handler = async function (event: any) {
+exports.handler = async function (event) {
   if (validateUserInput(event)) {
     const response = await fetchUser(
-      process.env.USERS_TABLE_NAME as string,
+      process.env.USERS_TABLE_NAME,
       event.queryStringParameters.username
     );
     return response;
@@ -81,4 +79,4 @@ exports.handler = async function (event: any) {
   }
 };
 
-exports.fetchUser = fetchUser;
+// exports.fetchUser = fetchUser;
