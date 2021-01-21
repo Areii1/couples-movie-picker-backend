@@ -87,15 +87,6 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
       },
     });
 
-    const getUsers = new lambda.Function(this, "GetUsersHandler", {
-      runtime: lambda.Runtime.NODEJS_10_X,
-      code: new lambda.AssetCode("src"),
-      handler: "getUsers.handler",
-      environment: {
-        USERS_TABLE_NAME: usersTable.tableName,
-      },
-    });
-
     const profilePictureUploadedTrigger = new lambda.Function(
       this,
       "ProfilePictureUploadedTrigger",
@@ -107,48 +98,8 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
           USERS_TABLE_NAME: usersTable.tableName,
         },
       }
-      );
-      usersTable.grantReadWriteData(profilePictureUploadedTrigger as any);
-
-    const removeProfilePicture = new lambda.Function(
-      this,
-      "RemoveProfilePictureHandler",
-      {
-        runtime: lambda.Runtime.NODEJS_10_X,
-        code: new lambda.AssetCode("src"),
-        handler: "removePicture.handler",
-        environment: {
-          USERS_TABLE_NAME: usersTable.tableName,
-        },
-      }
     );
-
-    const sendPairRequests = new lambda.Function(this, "SendPairRequest", {
-      runtime: lambda.Runtime.NODEJS_10_X,
-      code: new lambda.AssetCode("src"),
-      handler: "sendPairRequest.handler",
-      environment: {
-        USERS_TABLE_NAME: usersTable.tableName,
-      },
-    });
-
-    const acceptIncomingRequest = new lambda.Function(this, "AcceptIncomingRequest", {
-      runtime: lambda.Runtime.NODEJS_10_X,
-      code: new lambda.AssetCode("src"),
-      handler: "acceptIncomingRequest.handler",
-      environment: {
-        USERS_TABLE_NAME: usersTable.tableName,
-      },
-    });
-
-    const cancelPairingRequest = new lambda.Function(this, "CancelPairingRequest", {
-      runtime: lambda.Runtime.NODEJS_10_X,
-      code: new lambda.AssetCode("src"),
-      handler: "cancelPairingRequest.handler",
-      environment: {
-        USERS_TABLE_NAME: usersTable.tableName,
-      },
-    });
+    usersTable.grantReadWriteData(profilePictureUploadedTrigger as any);
 
     const api = new apigw.RestApi(this, "couples-movie-picker-api", {
       restApiName: "couples-movie-picker-api",
@@ -162,12 +113,21 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
         restApiId: api.restApiId,
         type: apigw.AuthorizationType.COGNITO,
         identitySource: "method.request.header.Authorization",
-        providerArns: [userPool.userPoolArn]
+        providerArns: [userPool.userPoolArn],
       }
     );
 
     const userResource = api.root.addResource("user");
     addCorsOptions(userResource);
+
+    const getUsers = new lambda.Function(this, "GetUsersHandler", {
+      runtime: lambda.Runtime.NODEJS_10_X,
+      code: new lambda.AssetCode("src"),
+      handler: "getUsers.handler",
+      environment: {
+        USERS_TABLE_NAME: usersTable.tableName,
+      },
+    });
 
     const getUsersIntegration = new apigw.LambdaIntegration(getUsers);
     userResource.addMethod("GET", getUsersIntegration, {
@@ -178,6 +138,19 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
 
     const pictureResource = userResource.addResource("picture");
     addCorsOptions(pictureResource);
+
+    const removeProfilePicture = new lambda.Function(
+      this,
+      "RemoveProfilePictureHandler",
+      {
+        runtime: lambda.Runtime.NODEJS_10_X,
+        code: new lambda.AssetCode("src"),
+        handler: "removePicture.handler",
+        environment: {
+          USERS_TABLE_NAME: usersTable.tableName,
+        },
+      }
+    );
 
     const removeProfilePictureIntegration = new apigw.LambdaIntegration(
       removeProfilePicture
@@ -196,9 +169,20 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
     moviesResource.addMethod("POST", likeMovieIntegration);
     usersTable.grantReadWriteData(likeMovie as any);
 
+    const sendPairRequests = new lambda.Function(this, "SendPairRequest", {
+      runtime: lambda.Runtime.NODEJS_10_X,
+      code: new lambda.AssetCode("src"),
+      handler: "sendPairRequest.handler",
+      environment: {
+        USERS_TABLE_NAME: usersTable.tableName,
+      },
+    });
+
     const requestPairingResource = api.root.addResource("requestPairing");
     addCorsOptions(requestPairingResource);
-    const requestPairingIntegration = new apigw.LambdaIntegration(sendPairRequests);
+    const requestPairingIntegration = new apigw.LambdaIntegration(
+      sendPairRequests
+    );
 
     requestPairingResource.addMethod("GET", requestPairingIntegration, {
       authorizationType: apigw.AuthorizationType.COGNITO,
@@ -206,9 +190,24 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
     });
     usersTable.grantReadWriteData(sendPairRequests as any);
 
+    const cancelPairingRequest = new lambda.Function(
+      this,
+      "CancelPairingRequest",
+      {
+        runtime: lambda.Runtime.NODEJS_10_X,
+        code: new lambda.AssetCode("src"),
+        handler: "cancelPairingRequest.handler",
+        environment: {
+          USERS_TABLE_NAME: usersTable.tableName,
+        },
+      }
+    );
+
     const cancelPairingResource = api.root.addResource("cancelPairing");
     addCorsOptions(cancelPairingResource);
-    const cancelPairingIntegration = new apigw.LambdaIntegration(cancelPairingRequest);
+    const cancelPairingIntegration = new apigw.LambdaIntegration(
+      cancelPairingRequest
+    );
 
     cancelPairingResource.addMethod("GET", cancelPairingIntegration, {
       authorizationType: apigw.AuthorizationType.COGNITO,
@@ -216,10 +215,26 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
     });
     usersTable.grantReadWriteData(cancelPairingRequest as any);
 
+    const acceptIncomingRequest = new lambda.Function(
+      this,
+      "AcceptIncomingRequest",
+      {
+        runtime: lambda.Runtime.NODEJS_10_X,
+        code: new lambda.AssetCode("src"),
+        handler: "acceptIncomingRequest.handler",
+        environment: {
+          USERS_TABLE_NAME: usersTable.tableName,
+        },
+      }
+    );
 
-    const acceptIncomingResource = api.root.addResource("acceptIncomingRequest");
+    const acceptIncomingResource = api.root.addResource(
+      "acceptIncomingRequest"
+    );
     addCorsOptions(acceptIncomingResource);
-    const acceptIncomingRequestIntegration = new apigw.LambdaIntegration(acceptIncomingRequest);
+    const acceptIncomingRequestIntegration = new apigw.LambdaIntegration(
+      acceptIncomingRequest
+    );
 
     acceptIncomingResource.addMethod("GET", acceptIncomingRequestIntegration, {
       authorizationType: apigw.AuthorizationType.COGNITO,
@@ -227,25 +242,32 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
     });
     usersTable.grantReadWriteData(acceptIncomingRequest as any);
 
-    const rejectIncomingRequest = new lambda.Function(this, "RejectIncomingRequest", {
-      runtime: lambda.Runtime.NODEJS_10_X,
-      code: new lambda.AssetCode("src"),
-      handler: "rejectIncomingRequest.handler",
-      environment: {
-        USERS_TABLE_NAME: usersTable.tableName,
-      },
-    });
+    const rejectIncomingRequest = new lambda.Function(
+      this,
+      "RejectIncomingRequest",
+      {
+        runtime: lambda.Runtime.NODEJS_10_X,
+        code: new lambda.AssetCode("src"),
+        handler: "rejectIncomingRequest.handler",
+        environment: {
+          USERS_TABLE_NAME: usersTable.tableName,
+        },
+      }
+    );
 
-    const rejectIncomingResource = api.root.addResource("rejectIncomingRequest");
+    const rejectIncomingResource = api.root.addResource(
+      "rejectIncomingRequest"
+    );
     addCorsOptions(rejectIncomingResource);
-    const rejectIncomingRequestIntegration = new apigw.LambdaIntegration(rejectIncomingRequest);
+    const rejectIncomingRequestIntegration = new apigw.LambdaIntegration(
+      rejectIncomingRequest
+    );
 
     rejectIncomingResource.addMethod("GET", rejectIncomingRequestIntegration, {
       authorizationType: apigw.AuthorizationType.COGNITO,
       authorizer: { authorizerId: authorizer.ref },
     });
     usersTable.grantReadWriteData(rejectIncomingRequest as any);
-    
 
     const breakUpPartnership = new lambda.Function(this, "BreakUpPartnership", {
       runtime: lambda.Runtime.NODEJS_10_X,
@@ -256,9 +278,13 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
       },
     });
 
-    const breakUpPartnershipResource = api.root.addResource("breakUpPartnership");
+    const breakUpPartnershipResource = api.root.addResource(
+      "breakUpPartnership"
+    );
     addCorsOptions(breakUpPartnershipResource);
-    const breakUpPartnershipIntegration = new apigw.LambdaIntegration(breakUpPartnership);
+    const breakUpPartnershipIntegration = new apigw.LambdaIntegration(
+      breakUpPartnership
+    );
 
     breakUpPartnershipResource.addMethod("GET", breakUpPartnershipIntegration, {
       authorizationType: apigw.AuthorizationType.COGNITO,
@@ -266,23 +292,35 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
     });
     usersTable.grantReadWriteData(breakUpPartnership as any);
 
-    const randomizeProfilePicture = new lambda.Function(this, "RandomizeProfilePicture", {
-      runtime: lambda.Runtime.NODEJS_10_X,
-      code: new lambda.AssetCode("src"),
-      handler: "randomizeProfilePicture.handler",
-      environment: {
-        USERS_TABLE_NAME: usersTable.tableName,
-      },
-    });
+    const randomizeProfilePicture = new lambda.Function(
+      this,
+      "RandomizeProfilePicture",
+      {
+        runtime: lambda.Runtime.NODEJS_10_X,
+        code: new lambda.AssetCode("src"),
+        handler: "randomizeProfilePicture.handler",
+        environment: {
+          USERS_TABLE_NAME: usersTable.tableName,
+        },
+      }
+    );
 
-    const randomizeProfilePictureResource = api.root.addResource("randomizeProfilePicture");
+    const randomizeProfilePictureResource = api.root.addResource(
+      "randomizeProfilePicture"
+    );
     addCorsOptions(randomizeProfilePictureResource);
-    const randomizeProfilePictureIntegration = new apigw.LambdaIntegration(randomizeProfilePicture);
+    const randomizeProfilePictureIntegration = new apigw.LambdaIntegration(
+      randomizeProfilePicture
+    );
 
-    randomizeProfilePictureResource.addMethod("GET", randomizeProfilePictureIntegration, {
-      authorizationType: apigw.AuthorizationType.COGNITO,
-      authorizer: { authorizerId: authorizer.ref },
-    });
+    randomizeProfilePictureResource.addMethod(
+      "GET",
+      randomizeProfilePictureIntegration,
+      {
+        authorizationType: apigw.AuthorizationType.COGNITO,
+        authorizer: { authorizerId: authorizer.ref },
+      }
+    );
     usersTable.grantReadWriteData(randomizeProfilePicture as any);
 
     // need to add bucket policy to s3 bucket
@@ -306,8 +344,7 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
     //     ]
     // }
 
-      
-    const profilePicturesBucket = new s3.Bucket(this, "profilePicturesBucket", {
+    new s3.Bucket(this, "profilePicturesBucket", {
       cors: [
         {
           allowedOrigins: ["*"],

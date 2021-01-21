@@ -2,7 +2,7 @@ export {};
 
 const AWS = require("aws-sdk");
 const { validateTriggerInput } = require("./utilityFunctions");
-const { fetchUser } = require("./getUsers");
+// const { fetchUser } = require("./getUsers");
 
 const requiredAttributes = [{ name: "userName", type: "string" }];
 
