@@ -78,15 +78,6 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
       partitionKey: { name: "title", type: dynamodb.AttributeType.STRING },
     });
 
-    const likeMovie = new lambda.Function(this, "LikeMovieHandler", {
-      runtime: lambda.Runtime.NODEJS_10_X,
-      code: new lambda.AssetCode("src"),
-      handler: "likeMovie.handler",
-      environment: {
-        USERS_TABLE_NAME: usersTable.tableName,
-      },
-    });
-
     const profilePictureUploadedTrigger = new lambda.Function(
       this,
       "ProfilePictureUploadedTrigger",
@@ -162,11 +153,23 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
     userResource.addMethod("POST", addUserIntegration);
     usersTable.grantReadWriteData(addUser as any);
 
-    const moviesResource = api.root.addResource("movies");
+    const moviesResource = api.root.addResource("likeMovie");
     addCorsOptions(moviesResource);
 
+    const likeMovie = new lambda.Function(this, "LikeMovieHandler", {
+      runtime: lambda.Runtime.NODEJS_10_X,
+      code: new lambda.AssetCode("src"),
+      handler: "likeMovie.handler",
+      environment: {
+        USERS_TABLE_NAME: usersTable.tableName,
+      },
+    });
+
     const likeMovieIntegration = new apigw.LambdaIntegration(likeMovie);
-    moviesResource.addMethod("POST", likeMovieIntegration);
+    moviesResource.addMethod("GET", likeMovieIntegration, {
+      authorizationType: apigw.AuthorizationType.COGNITO,
+      authorizer: { authorizerId: authorizer.ref },
+    });
     usersTable.grantReadWriteData(likeMovie as any);
 
     const sendPairRequests = new lambda.Function(this, "SendPairRequest", {

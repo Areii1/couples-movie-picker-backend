@@ -9,6 +9,17 @@ const getFetchUserParams = (tableName, givenUsername) => {
   };
 };
 
+const getFetchMovieParams = (tableName, movieId) => {
+  return {
+    TableName: tableName,
+    Key: {
+      id: {
+        S: movieId,
+      },
+    },
+  };
+};
+
 const validateQueryStringUsername = (event) => {
   if (event.queryStringParameters) {
     if (event.queryStringParameters.username) {
