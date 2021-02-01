@@ -5,11 +5,12 @@ import * as apigw from "@aws-cdk/aws-apigateway";
 import cognito = require("@aws-cdk/aws-cognito");
 import s3 = require("@aws-cdk/aws-s3");
 
+const isProd = true;
 export class CouplesMoviePickerBackendStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const usersTable = new dynamodb.Table(this, "users", {
+    const usersTable = new dynamodb.Table(this, isProd ? 'users-prod' : 'users-dev', {
       partitionKey: { name: "username", type: dynamodb.AttributeType.STRING },
     });
 
@@ -30,9 +31,9 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
 
     const userPool = new cognito.UserPool(
       this,
-      "couples-movie-picker-user-pool",
+      isProd ? "couples-movie-picker-user-pool-prod" : 'couples-movie-picker-user-pool-dev',
       {
-        userPoolName: "couples-movie-picker-user-pool",
+        userPoolName: isProd ? "couples-movie-picker-user-pool-prod" : 'couples-movie-picker-user-pool-dev',
         selfSignUpEnabled: true,
         autoVerify: { email: true },
         passwordPolicy: {
@@ -49,7 +50,7 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
       }
     );
 
-    new cognito.UserPoolClient(this, "couples-movie-picker-user-pool-client", {
+    new cognito.UserPoolClient(this, isProd ? "couples-movie-picker-user-pool-client-prod" : 'couples-movie-picker-user-pool-client-dev', {
       userPool,
       generateSecret: false,
     });
@@ -59,7 +60,7 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
 
     const identityPool = new cognito.CfnIdentityPool(
       this,
-      "couples-movie-picker-identity-pool",
+      isProd ? "couples-movie-picker-identity-pool-prod" : "couples-movie-picker-identity-pool-dev" ,
       {
         allowUnauthenticatedIdentities: true,
         // cognitoIdentityProviders: [
@@ -74,7 +75,7 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
     //   roles:
     // });
 
-    const movies = new dynamodb.Table(this, "movies", {
+    const movies = new dynamodb.Table(this, isProd ? "movies-prod" : 'movies-dev', {
       partitionKey: { name: "title", type: dynamodb.AttributeType.STRING },
     });
 
@@ -92,15 +93,15 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
     );
     usersTable.grantReadWriteData(profilePictureUploadedTrigger as any);
 
-    const api = new apigw.RestApi(this, "couples-movie-picker-api", {
-      restApiName: "couples-movie-picker-api",
+    const api = new apigw.RestApi(this, isProd ? "couples-movie-picker-api-prod" : 'couples-movie-picker-api-dev', {
+      restApiName:  isProd ? "couples-movie-picker-api-prod" : 'couples-movie-picker-api-dev',
     });
 
     const authorizer = new apigw.CfnAuthorizer(
       this,
-      "couples-movie-picker-api-authorizer",
+      isProd ? "couples-movie-picker-api-authorizer-prod" : "couples-movie-picker-api-authorizer-dev",
       {
-        name: "couples-movie-picker-api-authorizer",
+        name: isProd ? "couples-movie-picker-api-authorizer-prod" : "couples-movie-picker-api-authorizer-dev",
         restApiId: api.restApiId,
         type: apigw.AuthorizationType.COGNITO,
         identitySource: "method.request.header.Authorization",
@@ -347,7 +348,7 @@ export class CouplesMoviePickerBackendStack extends cdk.Stack {
     //     ]
     // }
 
-    new s3.Bucket(this, "profilePicturesBucket", {
+    new s3.Bucket(this, isProd ?  "profilePicturesBucketProd" : "profilePicturesBucketDev", {
       cors: [
         {
           allowedOrigins: ["*"],
